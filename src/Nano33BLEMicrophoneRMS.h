@@ -1,5 +1,5 @@
 /*
-  Nano33BLESensorMagnetic.h
+  Nano33BLESensorMicrophoneRMS.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
 `	*** WRITE SOMETHING HERE ***
@@ -21,8 +21,9 @@
 /*****************************************************************************/
 /*INLCUDE GUARD                                                              */
 /*****************************************************************************/
-#ifndef NANO33BLEMAGNETIC_H_
-#define NANO33BLEMAGNETIC_H_
+/* Update these names to match the name of the file */ 
+#ifndef NANO33BLEMICROPHONERMS_H_
+#define NANO33BLEMICROPHONERMS_H_
 
 /*****************************************************************************/
 /*INLCUDES                                                                   */
@@ -32,20 +33,30 @@
 #include "Nano33BLESensorBuffer.h"
 
 /* Place includes required for the initialisation and read of the sensor here*/
-#include "Arduino_LSM9DS1.h"
+#include <PDM.h>
 
+#include <arm_math.h>
 /*****************************************************************************/
 /*MACROS                                                                     */
 /*****************************************************************************/
-/**
- * This macro is required. It defines the wait period between sensor reads.
- * Update to the value you need based on how fast the sensor can read data.  
- */
-#define MAGNETIC_READ_PERIOD_MS					(40U)
+/* This value was also used in the PDM example, seems like a good enough reason to
+ * continue using it. With this value and 16kHz sampling frequency, the RMS sampling
+ * period will be 16mS */
+#define MICROPHONE_BUFFER_SIZE_IN_WORDS (256U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
 /*****************************************************************************/
+const uint32_t MICROPHONE_BUFFER_SIZE_IN_BYTES_C = (MICROPHONE_BUFFER_SIZE_IN_WORDS * sizeof(int16_t));
+
+/* MP34DT05 Microphone data buffer with a bit depth of 16. Also a variable for the RMS value */
+static int16_t microphoneBuffer[MICROPHONE_BUFFER_SIZE_IN_WORDS];
+static rtos::Semaphore bufferReadySemaphore;
+
+/*****************************************************************************/
+/*GLOBAL Functions                                                                */
+/*****************************************************************************/
+void PDM_callback(void);
 
 /*****************************************************************************/
 /*CLASS DECLARATION                                                          */
@@ -56,12 +67,10 @@
  * whatever you like. Make sure the members are public.
  */
 
-class Nano33BLEMagneticData
+class Nano33BLEMicrophoneRMSData
 {
   public:
-    float x;
-    float y;
-    float z;
+    int16_t RMSValue;
     uint32_t timeStampMs;
 };
 
@@ -69,22 +78,32 @@ class Nano33BLEMagneticData
  * This class declares the init and read functions your sensor will use to 
  * initialise the sensor and get the data. All you have to do is change the
  * class name what a name you like 
- * (currently "Nano33BLEGyroscope"), and update the 
- * "Nano33BLEGyroscopeData" name to the name you defined in 
+ * (currently "Nano33BLEYOURCLASSNAMEHERE"), and update the 
+ * "Nano33BLEYOURDATACLASSNAMEHERE" name to the name you defined in 
  * the section above.
  */
-class Nano33BLEMagnetic: public Nano33BLESensor<Nano33BLEMagnetic>, public Nano33BLESensorBuffer<Nano33BLEMagneticData>
+class Nano33BLEMicrophoneRMS: public Nano33BLESensor<Nano33BLEMicrophoneRMS>, public Nano33BLESensorBuffer<Nano33BLEMicrophoneRMSData>
 {
   public:
     void init(void);
-    void read(void);
-
-    const uint32_t READ_PERIOD_MS_C = MAGNETIC_READ_PERIOD_MS;
+    void read(void);     
 };
 
 /*****************************************************************************/
 /*CLASS MEMBER FUNCTION IMPLEMENTATION                                       */
 /*****************************************************************************/
+void PDM_callback(void)
+{
+  // query the number of bytes available
+  int bytesAvailable = PDM.available();
+
+  if(bytesAvailable == MICROPHONE_BUFFER_SIZE_IN_BYTES_C)
+  {
+    PDM.read(microphoneBuffer, MICROPHONE_BUFFER_SIZE_IN_BYTES_C);
+    bufferReadySemaphore.release();
+  }
+}
+
 /**
  * @brief
  * This member function implementation should do everything requred to 
@@ -95,18 +114,28 @@ class Nano33BLEMagnetic: public Nano33BLESensor<Nano33BLEMagnetic>, public Nano3
  * @param none
  * @return none
  */
-void Nano33BLEMagnetic::init()
+void Nano33BLEMicrophoneRMS::init()
 {
-	/* IMU setup for LSM9DS1*/
-	/* default setup has all sensors active in continous mode. Sample rates
-	 *  are as follows: magneticFieldSampleRate = 20Hz
-	 */
-	if (!IMU.begin())
-	{
+  /* PDM setup for MP34DT05 microphone */
+  /* configure the data receive callback to transfer data to local buffer */
+  PDM.onReceive(PDM_callback);
+  /* Initialise single PDM channel with a 16KHz sample rate (only 16kHz or 44.1kHz available */
+  if (!PDM.begin(1, 16000))
+  {
 		/* Something went wrong... Put this thread to sleep indefinetely. */
 		osSignalWait(0x0001, osWaitForever);
-	}
-  return;
+  }
+  else
+  {
+    /* Gain values can be from 0 to 80 (around 38db). Check out nrf_pdm.h
+     * from the nRF528x-mbedos core to confirm this. 
+     */
+    /* 
+     * This has to be done after PDM.begin() is called as begin() always
+     *  sets the gain as the default PDM.h value (20).
+     */
+    PDM.setGain(50);
+  }
 }
 
 /**
@@ -121,27 +150,18 @@ void Nano33BLEMagnetic::init()
  * @param none
  * @return none
  */
-void Nano33BLEMagnetic::read(void)
+void Nano33BLEMicrophoneRMS::read(void)
 {
   /* 
    * Place the implementation required to read the sensor
    * once here.
    */
-	Nano33BLEMagneticData data;
-
-  if(IMU.magneticFieldAvailable())
-  {
-    IMU.readMagneticField(data.x, data.y, data.z);
-    data.timeStampMs = millis();
-    push(data);
-  }
-
-  /* This is required for the timing of the reading of
-   * the sensor. Do not delete it.
-   */
-  rtos::ThisThread::sleep_for(READ_PERIOD_MS_C);
-  return;
+  bufferReadySemaphore.acquire();
+  Nano33BLEMicrophoneRMSData data;
+  arm_rms_q15((q15_t*)microphoneBuffer, MICROPHONE_BUFFER_SIZE_IN_WORDS, (q15_t*)&data.RMSValue);
+  data.timeStampMs = millis();
+  push(data);
 }
 
 /* Update these names to match the name of the file */ 
-#endif /* NANO33BLEMAGNETIC_H_ */
+#endif /* NANO33BLEMICROPHONERMS_H_ */

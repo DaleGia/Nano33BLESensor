@@ -1,5 +1,5 @@
 /*
-  Nano33BLESensorMagnetic.h
+  Nano33BLEGesture.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
 `	*** WRITE SOMETHING HERE ***
@@ -21,8 +21,9 @@
 /*****************************************************************************/
 /*INLCUDE GUARD                                                              */
 /*****************************************************************************/
-#ifndef NANO33BLEMAGNETIC_H_
-#define NANO33BLEMAGNETIC_H_
+/* Update these names to match the name of the file */ 
+#ifndef NANO33BLEGESTURE_H_
+#define NANO33BLEGESTURE_H_
 
 /*****************************************************************************/
 /*INLCUDES                                                                   */
@@ -32,8 +33,7 @@
 #include "Nano33BLESensorBuffer.h"
 
 /* Place includes required for the initialisation and read of the sensor here*/
-#include "Arduino_LSM9DS1.h"
-
+#include <Arduino_APDS9960.h>
 /*****************************************************************************/
 /*MACROS                                                                     */
 /*****************************************************************************/
@@ -41,7 +41,22 @@
  * This macro is required. It defines the wait period between sensor reads.
  * Update to the value you need based on how fast the sensor can read data.  
  */
-#define MAGNETIC_READ_PERIOD_MS					(40U)
+#define GESTURE_READ_PERIOD_MS					(10U)
+
+/* 
+ * As per Arduino_APDS9960.h, 0=100%, 1=150%, 2=200%, 3=300%. Obviously more
+ * boost results in more power consumption. 
+ */
+#define IR_LED_BOOST_VALUE      (0U)
+/* 
+ * Set sensitivity from 0 to 100. Higher is more sensitive. In
+ * my experience it requires quite a bit of experimentation to
+ * get this right, as if it is too sensitive gestures will always
+ * register as GESTURE_DOWN or GESTURE_UP and never GESTURE_LEFT or
+ * GESTURE_RIGHT. This can be called before APDS.begin() as it just
+ * sets an internal sensitivity value.
+ */
+#define IR_GESTURE_SENSITIVITY  (50U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -56,12 +71,18 @@
  * whatever you like. Make sure the members are public.
  */
 
-class Nano33BLEMagneticData
+class Nano33BLEGestureData
 {
   public:
-    float x;
-    float y;
-    float z;
+    enum  GESTURE
+    {
+      LEFT = GESTURE_LEFT,
+      RIGHT = GESTURE_RIGHT,
+      UP = GESTURE_UP,
+      DOWN = GESTURE_DOWN
+    };
+
+    enum GESTURE gesture;
     uint32_t timeStampMs;
 };
 
@@ -69,17 +90,17 @@ class Nano33BLEMagneticData
  * This class declares the init and read functions your sensor will use to 
  * initialise the sensor and get the data. All you have to do is change the
  * class name what a name you like 
- * (currently "Nano33BLEGyroscope"), and update the 
- * "Nano33BLEGyroscopeData" name to the name you defined in 
+ * (currently "Nano33BLEYOURCLASSNAMEHERE"), and update the 
+ * "Nano33BLEYOURDATACLASSNAMEHERE" name to the name you defined in 
  * the section above.
  */
-class Nano33BLEMagnetic: public Nano33BLESensor<Nano33BLEMagnetic>, public Nano33BLESensorBuffer<Nano33BLEMagneticData>
+class Nano33BLEGesture: public Nano33BLESensor<Nano33BLEGesture>, public Nano33BLESensorBuffer<Nano33BLEGestureData>
 {
   public:
     void init(void);
     void read(void);
 
-    const uint32_t READ_PERIOD_MS_C = MAGNETIC_READ_PERIOD_MS;
+    const uint32_t READ_PERIOD_MS_C = GESTURE_READ_PERIOD_MS;
 };
 
 /*****************************************************************************/
@@ -95,17 +116,18 @@ class Nano33BLEMagnetic: public Nano33BLESensor<Nano33BLEMagnetic>, public Nano3
  * @param none
  * @return none
  */
-void Nano33BLEMagnetic::init()
+void Nano33BLEGesture::init()
 {
-	/* IMU setup for LSM9DS1*/
-	/* default setup has all sensors active in continous mode. Sample rates
-	 *  are as follows: magneticFieldSampleRate = 20Hz
-	 */
-	if (!IMU.begin())
-	{
+  APDS.setGestureSensitivity(IR_GESTURE_SENSITIVITY);
+  if (!APDS.begin())
+  {
 		/* Something went wrong... Put this thread to sleep indefinetely. */
 		osSignalWait(0x0001, osWaitForever);
-	}
+  }
+  /* As per Arduino_APDS9960.h, 0=100%, 1=150%, 2=200%, 3=300%. Obviously more
+   * boost results in more power consumption. 
+   */
+  APDS.setLEDBoost(IR_LED_BOOST_VALUE);
   return;
 }
 
@@ -121,17 +143,18 @@ void Nano33BLEMagnetic::init()
  * @param none
  * @return none
  */
-void Nano33BLEMagnetic::read(void)
+void Nano33BLEGesture::read(void)
 {
   /* 
    * Place the implementation required to read the sensor
    * once here.
    */
-	Nano33BLEMagneticData data;
+  Nano33BLEGestureData data;
 
-  if(IMU.magneticFieldAvailable())
+  /* If new proximity data is available on the APDS9960 get the data.*/
+  if (APDS.gestureAvailable())
   {
-    IMU.readMagneticField(data.x, data.y, data.z);
+    data.gesture = (enum Nano33BLEGestureData::GESTURE)APDS.readGesture();
     data.timeStampMs = millis();
     push(data);
   }
@@ -140,8 +163,7 @@ void Nano33BLEMagnetic::read(void)
    * the sensor. Do not delete it.
    */
   rtos::ThisThread::sleep_for(READ_PERIOD_MS_C);
-  return;
 }
 
 /* Update these names to match the name of the file */ 
-#endif /* NANO33BLEMAGNETIC_H_ */
+#endif /* NANO33BLEGESTURE_H_ */

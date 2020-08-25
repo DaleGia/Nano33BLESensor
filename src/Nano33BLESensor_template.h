@@ -1,5 +1,5 @@
 /*
-  Nano33BLESensorMagnetic.h
+  Nano33BLESensor_template.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
 `	*** WRITE SOMETHING HERE ***
@@ -21,8 +21,9 @@
 /*****************************************************************************/
 /*INLCUDE GUARD                                                              */
 /*****************************************************************************/
-#ifndef NANO33BLEMAGNETIC_H_
-#define NANO33BLEMAGNETIC_H_
+/* Update these names to match the name of the file */ 
+#ifndef NANO33BLEYOURFILENAMEHERE_H_
+#define NANO33BLEYOURFILENAMEHERE_H_
 
 /*****************************************************************************/
 /*INLCUDES                                                                   */
@@ -32,7 +33,6 @@
 #include "Nano33BLESensorBuffer.h"
 
 /* Place includes required for the initialisation and read of the sensor here*/
-#include "Arduino_LSM9DS1.h"
 
 /*****************************************************************************/
 /*MACROS                                                                     */
@@ -41,7 +41,7 @@
  * This macro is required. It defines the wait period between sensor reads.
  * Update to the value you need based on how fast the sensor can read data.  
  */
-#define MAGNETIC_READ_PERIOD_MS					(40U)
+#define READ_PERIOD_MS					(8U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -56,30 +56,24 @@
  * whatever you like. Make sure the members are public.
  */
 
-class Nano33BLEMagneticData
+class Nano33BLEYOURDATACLASSNAMEHERE
 {
   public:
-    float x;
-    float y;
-    float z;
-    uint32_t timeStampMs;
 };
 
 /**
  * This class declares the init and read functions your sensor will use to 
  * initialise the sensor and get the data. All you have to do is change the
  * class name what a name you like 
- * (currently "Nano33BLEGyroscope"), and update the 
- * "Nano33BLEGyroscopeData" name to the name you defined in 
+ * (currently "Nano33BLEYOURCLASSNAMEHERE"), and update the 
+ * "Nano33BLEYOURDATACLASSNAMEHERE" name to the name you defined in 
  * the section above.
  */
-class Nano33BLEMagnetic: public Nano33BLESensor<Nano33BLEMagnetic>, public Nano33BLESensorBuffer<Nano33BLEMagneticData>
+class Nano33BLEYOURCLASSNAMEHERE: public Nano33BLESensor<Nano33BLEYOURCLASSNAMEHERE>, public Nano33BLESensorBuffer<Nano33BLEYOURDATACLASSNAMEHERE>
 {
   public:
     void init(void);
     void read(void);
-
-    const uint32_t READ_PERIOD_MS_C = MAGNETIC_READ_PERIOD_MS;
 };
 
 /*****************************************************************************/
@@ -95,18 +89,8 @@ class Nano33BLEMagnetic: public Nano33BLESensor<Nano33BLEMagnetic>, public Nano3
  * @param none
  * @return none
  */
-void Nano33BLEMagnetic::init()
+void Nano33BLEYOURCLASSNAMEHERE::init()
 {
-	/* IMU setup for LSM9DS1*/
-	/* default setup has all sensors active in continous mode. Sample rates
-	 *  are as follows: magneticFieldSampleRate = 20Hz
-	 */
-	if (!IMU.begin())
-	{
-		/* Something went wrong... Put this thread to sleep indefinetely. */
-		osSignalWait(0x0001, osWaitForever);
-	}
-  return;
 }
 
 /**
@@ -121,27 +105,19 @@ void Nano33BLEMagnetic::init()
  * @param none
  * @return none
  */
-void Nano33BLEMagnetic::read(void)
+void Nano33BLEYOURCLASSNAMEHERE::read(void)
 {
   /* 
    * Place the implementation required to read the sensor
    * once here.
    */
-	Nano33BLEMagneticData data;
 
-  if(IMU.magneticFieldAvailable())
-  {
-    IMU.readMagneticField(data.x, data.y, data.z);
-    data.timeStampMs = millis();
-    push(data);
-  }
 
   /* This is required for the timing of the reading of
    * the sensor. Do not delete it.
    */
-  rtos::ThisThread::sleep_for(READ_PERIOD_MS_C);
-  return;
+  rtos::ThisThread::sleep_for(READ_PERIOD_MS);
 }
 
 /* Update these names to match the name of the file */ 
-#endif /* NANO33BLEMAGNETIC_H_ */
+#endif /* NANO33BLEYOURFILENAMEHERE_H_ */

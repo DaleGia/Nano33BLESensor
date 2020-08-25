@@ -28,71 +28,62 @@
 #include <Arduino.h>
 
 /* For APDS9960 Gesture, light, and proximity sensor */
-#include <Arduino_APDS9960.h>
+//#include <Arduino_APDS9960.h>
 /* For LPS22HB barometric barometricPressure sensor */
-#include <Arduino_LPS22HB.h>
+//#include <Arduino_LPS22HB.h>
 /* For HTS221 Temperature and humidity sensor */
-#include <Arduino_HTS221.h>
+//#include <Arduino_HTS221.h>
+
+#include <CircularBuffer.h>
+#include "MbedOSThreadSafe.h"
 
 /********/
 /*MACROS*/
 /********/
-#define SENSOR_BUFFER_SIZE	20
-
-#define GYROSCOPE_DATA_MONITOR_PERIOD_MS		8
-
-#define ACCELERATION_DATA_READY_FLAG	0x0001
-#define GYROSCOPE_DATA_READY_FLAG		0x0002
-#define MAGNETIC_DATA_READY_FLAG		0x0004
-#define PRESSURE_DATA_READY_FLAG		0x0008
-#define TEMPERATURE_DATA_READY_FLAG		0x0010
-#define HUMIDITY_DATA_READY_FLAG		0x0020
-#define PROXIMITY_DATA_READY_FLAG		0x0040
-#define GESTURE_DATA_READY_FLAG			0x0080
-#define COLOUR_DATA_READY_FLAG			0x0100
+#define THREAD_STACK_SIZE			(1024U) /* in bytes */
 
 /******************/
 /*GLOBAL TYPES*/
 /******************/
 
 
-struct NanoBLE33Pressure_t
-{
-	float pressure;
-	uint32_t timeStampMs;
-};
+// struct Nano33BLEPressure_t
+// {
+// 	float pressure;
+// 	uint32_t timeStampMs;
+// };
 
-struct NanoBLE33Temperature_t
-{
-	float temperature;
-	uint32_t timeStampMs;
-};
+// struct Nano33BLETemperature_t
+// {
+// 	float temperature;
+// 	uint32_t timeStampMs;
+// };
 
-struct NanoBLE33Humidity_t
-{
-	float humidity;
-	uint32_t timeStampMs;
-};
+// struct Nano33BLEHumidity_t
+// {
+// 	float humidity;
+// 	uint32_t timeStampMs;
+// };
 
-struct NanoBLE33Proximity_t
-{
-	int proximity;
-	uint32_t timeStampMs;
-};
+// struct Nano33BLEProximity_t
+// {
+// 	int proximity;
+// 	uint32_t timeStampMs;
+// };
 
-struct NanoBLE33Gesture_t
-{
-	int gesture;
-	uint32_t timeStampMs;
-};
+// struct Nano33BLEGesture_t
+// {
+// 	int gesture;
+// 	uint32_t timeStampMs;
+// };
 
-struct NanoBLE33Colour_t
-{
-	int red;
-	int green;
-	int blue;
-	uint32_t timeStampMs;
-};
+// struct Nano33BLEColour_t
+// {
+// 	int red;
+// 	int green;
+// 	int blue;
+// 	uint32_t timeStampMs;
+// };
 
 /******************/
 /*LOCAL VARIABLES*/
@@ -101,155 +92,106 @@ struct NanoBLE33Colour_t
 /******************/
 /*GLOBAL VARIABLES*/
 /******************/
-rtos::EventFlags sensorAvailableflags;
 
 /*********/
 /*CLASSES*/
 /*********/
-/* Flags to indicate whether the various sensors are being used */
-static bool MP34DT05InitialisedFlag = false;
-static bool IMUInitialisedFlag = false;
-static bool APDS9960InitialisedFlag = false;
-static bool LPS22HBInitialisedFlag = false;
-static bool HTS221InitialisedFlag = false;
 
 template<class T>
-class NanoBLE33Sensor
+class Nano33BLESensor
 {
-	public:
-		uint32_t getAvailableDataSize(void);
-		bool getLast(T& data);
-		uint32_t getData(T& buffer, uint32_t size);
+	public:			
+		static T* begin()
+		{
+			T* instance;
+			instance = getInstance();
+			initFunction(instance);
+			return instance;
+		}
+
+
 
 	protected:
-		NanoBLE33Sensor(
-				osPriority_t monitorThreadPriority,
-				uint32_t monitorThreadStackSize,
-				const char* monitorThreadName,
-				osPriority_t readThreadPriority,
-				uint32_t readThreadStackSize,
-				const char* readThreadName) :
-					monitorThread(
-						monitorThreadPriority,
-						monitorThreadStackSize,
-						nullptr,
-						monitorThreadName),
-					readThread(
-						readThreadPriority,
-						readThreadStackSize,
-						nullptr,
-						readThreadName),
-					dataEventFlags(),
-					dataLock_mutex()
+		Nano33BLESensor() : readThread(
+			osPriorityHigh,
+			THREAD_STACK_SIZE){};
+	
+	private:
+		static T* getInstance()
 		{
-			Serial.println("NanoBLE33Sensor inistialised");
-		};
+		  static T instance;
+		  return &instance;
+		}
 
-		//T buffer[SENSOR_BUFFER_SIZE];
-		mbed::CircularBuffer<T, SENSOR_BUFFER_SIZE> buffer;
+		static void initFunction(T *instance);
+		static void readFunction(T *instance);
 
-		rtos::Thread monitorThread;
 		rtos::Thread readThread;
-
-		enum dataEventFlags_e
-		{
-			dataAvailableFlag = 0x000001,
-		};
-
-		rtos::EventFlags dataEventFlags;
-		rtos::Mutex dataLock_mutex;
-
-	private:
-
-
-
-
 };
 
-template<class T> uint32_t NanoBLE33Sensor<T>::getAvailableDataSize(void)
+template<class T> void Nano33BLESensor<T>::initFunction(T *instance)
 {
-	return this->buffer.size();
+	instance->init();
+	instance->readThread.start(mbed::callback(Nano33BLESensor<T>::readFunction, instance));
 }
 
-template<class T> bool NanoBLE33Sensor<T>::getLast(T& buffer)
+template<class T> void Nano33BLESensor<T>::readFunction(T *instance)
 {
-	return this->buffer.pop(buffer);
-}
-
-template<class T> uint32_t NanoBLE33Sensor<T>::getData(T& buffer, uint32_t size)
-{
-	uint32_t availableData;
-	uint32_t readData;
-	uint32_t ii;
-
-	availableData = this->buffer.size();
-	if(availableData < size)
+	while(1)
 	{
-		readData = availableData;
+		instance->read();
 	}
-	else
-	{
-		readData = size;
-	}
-
-	for(ii = 0; ii < readData; ii++)
-	{
-		this->buffer.pop(buffer);
-	}
-
-	return readData;
 }
 
 
 
+// /* variables to hold LPS22HB barometric pressure data */
+// class Nano33BLEPressure: public Nano33BLESensor<struct Nano33BLEPressure_t>
+// {
+// 	public:
+// 		Nano33BLEPressure();
+// 	private:
 
-/* variables to hold LPS22HB barometric pressure data */
-class NanoBLE33Pressure: public NanoBLE33Sensor<struct NanoBLE33Pressure_t>
-{
-	public:
-		NanoBLE33Pressure();
-	private:
+// };
 
-};
+// /* variables to hold HTS221 temperature data*/
+// class Nano33BLETemperature: public Nano33BLESensor<struct Nano33BLETemperature_t>
+// {
+// 	public:
+// 		Nano33BLETemperature();
+// 	private:
+// };
 
-/* variables to hold HTS221 temperature data*/
-class NanoBLE33Temperature: public NanoBLE33Sensor<struct NanoBLE33Temperature_t>
-{
-	public:
-		NanoBLE33Temperature();
-	private:
-};
-
-/* variables to hold HTS221 humidity data*/
-class NanoBLE33Humidity: public NanoBLE33Sensor<struct NanoBLE33Humidity_t>
-{
-	public:
-		NanoBLE33Humidity();
-	private:
-};
+// /* variables to hold HTS221 humidity data*/
+// class Nano33BLEHumidity: public Nano33BLESensor<struct Nano33BLEHumidity_t>
+// {
+// 	public:
+// 		Nano33BLEHumidity();
+// 	private:
+// };
 
 
-/* variables to hold APDS9960 proximity data*/
-class NanoBLE33Proximity: public NanoBLE33Sensor<struct NanoBLE33Proximity_t>
-{
-	public:
-		NanoBLE33Proximity();
-	private:
-};
-/* variables to hold APDS9960 gesture data */
-class NanoBLE33Gesture: public NanoBLE33Sensor<struct NanoBLE33Gesture_t>
-{
-	public:
-		NanoBLE33Gesture();
-	private:
-};
+// /* variables to hold APDS9960 proximity data*/
+// class Nano33BLEProximity: public Nano33BLESensor<struct Nano33BLEProximity_t>
+// {
+// 	public:
+// 		Nano33BLEProximity();
+// 	private:
+// };
+// /* variables to hold APDS9960 gesture data */
+// class Nano33BLEGesture: public Nano33BLESensor<struct Nano33BLEGesture_t>
+// {
+// 	public:
+// 		Nano33BLEGesture();
+// 	private:
+// };
 
-/* variables to hold APDS9960 colour data */
-class NanoBLE33Colour: public NanoBLE33Sensor<struct NanoBLE33Colour_t>
-{
-	public:
-		NanoBLE33Colour();
-	private:
-};
+// /* variables to hold APDS9960 colour data */
+// class Nano33BLEColour: public Nano33BLESensor<struct Nano33BLEColour_t>
+// {
+// 	public:
+// 		Nano33BLEColour();
+// 	private:
+// };
 
 #endif /* NANOBLESENSOR_H_ */
