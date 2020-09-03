@@ -49,7 +49,7 @@ class Nano33BLESensorBuffer
         uint32_t getAvailableDataSize(void);
         bool pop(T& data);
         uint32_t popMultiple(T& buffer, uint32_t size);
-
+    protected:
         void push(T& data);
     private:
         mbed::CircularBuffer<T, BUFFER_SIZE> buffer;
