@@ -81,7 +81,7 @@ if(availableColourData > 0)
 }
 ```
 
-pop() and popMultiple can be used in a similar manner for all other sensors.
+pop() and popMultiple() can be used in a similar manner for all other sensors.
 
 
 ## Further Examples  
