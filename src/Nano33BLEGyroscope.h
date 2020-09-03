@@ -2,7 +2,7 @@
   Nano33BLEGyroscope.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`	*** WRITE SOMETHING HERE ***
+`  *** WRITE SOMETHING HERE ***
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
  * This macro is required. It defines the wait period between sensor reads.
  * Update to the value you need based on how fast the sensor can read data.  
  */
-#define GYROSCOPE_READ_PERIOD_MS					(8U)
+#define GYROSCOPE_READ_PERIOD_MS          (8U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -99,14 +99,14 @@ class Nano33BLEGyroscope: public Nano33BLESensor<Nano33BLEGyroscope>, public Nan
 void Nano33BLEGyroscope::init()
 {
     /* IMU setup for LSM9DS1*/
-	  /* default setup has all sensors active in continous mode. Sample rates
-	   *  are as follows: gyroscopeYroscopeSampleRate = 109Hz
+    /* default setup has all sensors active in continous mode. Sample rates
+     *  are as follows: gyroscopeYroscopeSampleRate = 109Hz
      */
-	if (!IMU.begin())
-	{
-		/* Something went wrong... Put this thread to sleep indefinetely. */
-		osSignalWait(0x0001, osWaitForever);
-	}
+  if (!IMU.begin())
+  {
+    /* Something went wrong... Put this thread to sleep indefinetely. */
+    osSignalWait(0x0001, osWaitForever);
+  }
 
   return;
 }
@@ -129,7 +129,7 @@ void Nano33BLEGyroscope::read(void)
    * Place the implementation required to read the sensor
    * once here.
    */
-	Nano33BLEGyroscopeData data;
+  Nano33BLEGyroscopeData data;
 
   if(IMU.gyroscopeAvailable())
   {

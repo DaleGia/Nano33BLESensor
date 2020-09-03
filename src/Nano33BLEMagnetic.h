@@ -2,7 +2,7 @@
   Nano33BLESensorMagnetic.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`	*** WRITE SOMETHING HERE ***
+`  *** WRITE SOMETHING HERE ***
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@
  * This macro is required. It defines the wait period between sensor reads.
  * Update to the value you need based on how fast the sensor can read data.  
  */
-#define MAGNETIC_READ_PERIOD_MS					(40U)
+#define MAGNETIC_READ_PERIOD_MS          (40U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -97,15 +97,15 @@ class Nano33BLEMagnetic: public Nano33BLESensor<Nano33BLEMagnetic>, public Nano3
  */
 void Nano33BLEMagnetic::init()
 {
-	/* IMU setup for LSM9DS1*/
-	/* default setup has all sensors active in continous mode. Sample rates
-	 *  are as follows: magneticFieldSampleRate = 20Hz
-	 */
-	if (!IMU.begin())
-	{
-		/* Something went wrong... Put this thread to sleep indefinetely. */
-		osSignalWait(0x0001, osWaitForever);
-	}
+  /* IMU setup for LSM9DS1*/
+  /* default setup has all sensors active in continous mode. Sample rates
+   *  are as follows: magneticFieldSampleRate = 20Hz
+   */
+  if (!IMU.begin())
+  {
+    /* Something went wrong... Put this thread to sleep indefinetely. */
+    osSignalWait(0x0001, osWaitForever);
+  }
   return;
 }
 
@@ -127,7 +127,7 @@ void Nano33BLEMagnetic::read(void)
    * Place the implementation required to read the sensor
    * once here.
    */
-	Nano33BLEMagneticData data;
+  Nano33BLEMagneticData data;
 
   if(IMU.magneticFieldAvailable())
   {

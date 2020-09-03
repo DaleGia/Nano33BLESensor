@@ -2,7 +2,7 @@
   NanoBLESensor.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`	*** WRITE SOMETHING HERE ***
+`    *** WRITE SOMETHING HERE ***
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -40,50 +40,11 @@
 /********/
 /*MACROS*/
 /********/
-#define THREAD_STACK_SIZE			(1024U) /* in bytes */
+#define DEFAULT_THREAD_STACK_SIZE            (1024U) /* in bytes */
 
 /******************/
 /*GLOBAL TYPES*/
 /******************/
-
-
-// struct Nano33BLEPressure_t
-// {
-// 	float pressure;
-// 	uint32_t timeStampMs;
-// };
-
-// struct Nano33BLETemperature_t
-// {
-// 	float temperature;
-// 	uint32_t timeStampMs;
-// };
-
-// struct Nano33BLEHumidity_t
-// {
-// 	float humidity;
-// 	uint32_t timeStampMs;
-// };
-
-// struct Nano33BLEProximity_t
-// {
-// 	int proximity;
-// 	uint32_t timeStampMs;
-// };
-
-// struct Nano33BLEGesture_t
-// {
-// 	int gesture;
-// 	uint32_t timeStampMs;
-// };
-
-// struct Nano33BLEColour_t
-// {
-// 	int red;
-// 	int green;
-// 	int blue;
-// 	uint32_t timeStampMs;
-// };
 
 /******************/
 /*LOCAL VARIABLES*/
@@ -100,98 +61,49 @@
 template<class T>
 class Nano33BLESensor
 {
-	public:			
-		static T* begin()
-		{
-			T* instance;
-			instance = getInstance();
-			initFunction(instance);
-			return instance;
-		}
+    public:            
+        static T* begin()
+        {
+            T* instance;
+            instance = getInstance();
+            initFunction(instance);
+            return instance;
+        }
 
 
 
-	protected:
-		Nano33BLESensor() : readThread(
-			osPriorityHigh,
-			THREAD_STACK_SIZE){};
-	
-	private:
-		static T* getInstance()
-		{
-		  static T instance;
-		  return &instance;
-		}
+    protected:
+        Nano33BLESensor(
+            osPriority threadPriority = osPriorityNormal,
+            uint32_t threadSize = DEFAULT_THREAD_STACK_SIZE) : readThread(
+            threadPriority,
+            threadSize){};
+    
+    private:
+        static T* getInstance()
+        {
+          static T instance;
+          return &instance;
+        }
 
-		static void initFunction(T *instance);
-		static void readFunction(T *instance);
+        static void initFunction(T *instance);
+        static void readFunction(T *instance);
 
-		rtos::Thread readThread;
+        rtos::Thread readThread;
 };
 
 template<class T> void Nano33BLESensor<T>::initFunction(T *instance)
 {
-	instance->init();
-	instance->readThread.start(mbed::callback(Nano33BLESensor<T>::readFunction, instance));
+    instance->init();
+    instance->readThread.start(mbed::callback(Nano33BLESensor<T>::readFunction, instance));
 }
 
 template<class T> void Nano33BLESensor<T>::readFunction(T *instance)
 {
-	while(1)
-	{
-		instance->read();
-	}
+    while(1)
+    {
+        instance->read();
+    }
 }
-
-
-
-// /* variables to hold LPS22HB barometric pressure data */
-// class Nano33BLEPressure: public Nano33BLESensor<struct Nano33BLEPressure_t>
-// {
-// 	public:
-// 		Nano33BLEPressure();
-// 	private:
-
-// };
-
-// /* variables to hold HTS221 temperature data*/
-// class Nano33BLETemperature: public Nano33BLESensor<struct Nano33BLETemperature_t>
-// {
-// 	public:
-// 		Nano33BLETemperature();
-// 	private:
-// };
-
-// /* variables to hold HTS221 humidity data*/
-// class Nano33BLEHumidity: public Nano33BLESensor<struct Nano33BLEHumidity_t>
-// {
-// 	public:
-// 		Nano33BLEHumidity();
-// 	private:
-// };
-
-
-// /* variables to hold APDS9960 proximity data*/
-// class Nano33BLEProximity: public Nano33BLESensor<struct Nano33BLEProximity_t>
-// {
-// 	public:
-// 		Nano33BLEProximity();
-// 	private:
-// };
-// /* variables to hold APDS9960 gesture data */
-// class Nano33BLEGesture: public Nano33BLESensor<struct Nano33BLEGesture_t>
-// {
-// 	public:
-// 		Nano33BLEGesture();
-// 	private:
-// };
-
-// /* variables to hold APDS9960 colour data */
-// class Nano33BLEColour: public Nano33BLESensor<struct Nano33BLEColour_t>
-// {
-// 	public:
-// 		Nano33BLEColour();
-// 	private:
-// };
 
 #endif /* NANOBLESENSOR_H_ */

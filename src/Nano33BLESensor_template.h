@@ -2,7 +2,7 @@
   Nano33BLESensor_template.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`	*** WRITE SOMETHING HERE ***
+`  *** WRITE SOMETHING HERE ***
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@
  * This macro is required. It defines the wait period between sensor reads.
  * Update to the value you need based on how fast the sensor can read data.  
  */
-#define READ_PERIOD_MS					(8U)
+#define READ_PERIOD_MS          (8U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */

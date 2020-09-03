@@ -2,7 +2,7 @@
   NanoBLESensorBuffer.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`	*** WRITE SOMETHING HERE ***
+`    *** WRITE SOMETHING HERE ***
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 /*****************************************************************************/
 /*MACROS                                                                     */
 /*****************************************************************************/
-#define BUFFER_SIZE	(20U)
+#define BUFFER_SIZE    (20U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -46,8 +46,8 @@ class Nano33BLESensorBuffer
 {
     public:
         uint32_t getAvailableDataSize(void);
-		bool pop(T& data);
-		uint32_t popMultiple(T& buffer, uint32_t size);
+        bool pop(T& data);
+        uint32_t popMultiple(T& buffer, uint32_t size);
 
         void push(T& data);
     private:
@@ -59,41 +59,41 @@ class Nano33BLESensorBuffer
 /*****************************************************************************/
 template<class T> uint32_t Nano33BLESensorBuffer<T>::getAvailableDataSize(void)
 {
-	return this->buffer.size();
+    return this->buffer.size();
 }
 
 template<class T> bool Nano33BLESensorBuffer<T>::pop(T& buffer)
 {
-	return this->buffer.pop(buffer);
+    return this->buffer.pop(buffer);
 }
 
 template<class T> uint32_t Nano33BLESensorBuffer<T>::popMultiple(T& buffer, uint32_t size)
 {
-	uint32_t availableData;
-	uint32_t readData;
-	uint32_t ii;
+    uint32_t availableData;
+    uint32_t readData;
+    uint32_t ii;
 
-	availableData = this->buffer.size();
-	if(availableData < size)
-	{
-		readData = availableData;
-	}
-	else
-	{
-		readData = size;
-	}
+    availableData = this->buffer.size();
+    if(availableData < size)
+    {
+        readData = availableData;
+    }
+    else
+    {
+        readData = size;
+    }
 
-	for(ii = 0; ii < readData; ii++)
-	{
-		this->buffer.pop(buffer);
-	}
+    for(ii = 0; ii < readData; ii++)
+    {
+        this->buffer.pop(buffer);
+    }
 
-	return readData;
+    return readData;
 }
 
 template<class T> void Nano33BLESensorBuffer<T>::push(T& data)
 {
-	this->buffer.push(data);
+    this->buffer.push(data);
     return;
 }
 

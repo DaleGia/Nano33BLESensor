@@ -2,7 +2,7 @@
   Nano33BLEPressure.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`	*** WRITE SOMETHING HERE ***
+`  *** WRITE SOMETHING HERE ***
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
  * This macro is required. It defines the wait period between sensor reads.
  * Update to the value you need based on how fast the sensor can read data.  
  */
-#define PRESSURE_READ_PERIOD_MS					(1000U)
+#define PRESSURE_READ_PERIOD_MS          (1000U)
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -97,14 +97,14 @@ class Nano33BLEPressure: public Nano33BLESensor<Nano33BLEPressure>, public Nano3
 void Nano33BLEPressure::init()
 {
   /* IMU setup for LSM9DS1*/
-	/* default setup has all sensors active in continous mode. Sample rates
-	 *  are as follows: accelerationSampleRate = 109Hz 
+  /* default setup has all sensors active in continous mode. Sample rates
+   *  are as follows: accelerationSampleRate = 109Hz 
    */
-	if (!BARO.begin())
-	{
-		/* Something went wrong... Put this thread to sleep indefinetely. */
-		osSignalWait(0x0001, osWaitForever);
-	}
+  if (!BARO.begin())
+  {
+    /* Something went wrong... Put this thread to sleep indefinetely. */
+    osSignalWait(0x0001, osWaitForever);
+  }
   return;
 }
 
@@ -126,7 +126,7 @@ void Nano33BLEPressure::read(void)
    * Place the implementation required to read the sensor
    * once here.
    */
-	Nano33BLEPressureData data;
+  Nano33BLEPressureData data;
 
 
   data.barometricPressure = BARO.readPressure();

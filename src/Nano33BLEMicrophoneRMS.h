@@ -2,7 +2,7 @@
   Nano33BLESensorMicrophoneRMS.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`	*** WRITE SOMETHING HERE ***
+`  *** WRITE SOMETHING HERE ***
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -122,8 +122,8 @@ void Nano33BLEMicrophoneRMS::init()
   /* Initialise single PDM channel with a 16KHz sample rate (only 16kHz or 44.1kHz available */
   if (!PDM.begin(1, 16000))
   {
-		/* Something went wrong... Put this thread to sleep indefinetely. */
-		osSignalWait(0x0001, osWaitForever);
+    /* Something went wrong... Put this thread to sleep indefinetely. */
+    osSignalWait(0x0001, osWaitForever);
   }
   else
   {
@@ -134,7 +134,7 @@ void Nano33BLEMicrophoneRMS::init()
      * This has to be done after PDM.begin() is called as begin() always
      *  sets the gain as the default PDM.h value (20).
      */
-    PDM.setGain(50);
+    PDM.setGain(80);
   }
 }
 
