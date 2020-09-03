@@ -2,7 +2,8 @@
   NanoBLESensorBuffer.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`    *** WRITE SOMETHING HERE ***
+  This class implements a way to store and access the circular buffer
+  that each sensor will have assigned to it.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by

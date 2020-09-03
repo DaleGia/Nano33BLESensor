@@ -2,7 +2,10 @@
   Nano33BLESensorMicrophoneRMS.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`  *** WRITE SOMETHING HERE ***
+  This class reads RMS microphone data from the on board Nano 33 BLE
+  Sense microphone using Mbed OS. It stores the results in a ring 
+  buffer (within the Nano33BLESensorBuffer Class) which can be accessed
+  in a manner with softer time constraints than other implementations. 
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -28,35 +31,20 @@
 /*****************************************************************************/
 /*INLCUDES                                                                   */
 /*****************************************************************************/
-/* These are required, do not remove them */
-#include "Nano33BLESensor.h"
 #include "Nano33BLESensorBuffer.h"
 
-/* Place includes required for the initialisation and read of the sensor here*/
-#include <PDM.h>
-
-#include <arm_math.h>
 /*****************************************************************************/
 /*MACROS                                                                     */
 /*****************************************************************************/
-/* This value was also used in the PDM example, seems like a good enough reason to
- * continue using it. With this value and 16kHz sampling frequency, the RMS sampling
- * period will be 16mS */
-#define MICROPHONE_BUFFER_SIZE_IN_WORDS (256U)
+#define DEFAULT_MICROPHONE_THREAD_STACK_SIZE_BYTES       (1024U) 
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
 /*****************************************************************************/
-const uint32_t MICROPHONE_BUFFER_SIZE_IN_BYTES_C = (MICROPHONE_BUFFER_SIZE_IN_WORDS * sizeof(int16_t));
-
-/* MP34DT05 Microphone data buffer with a bit depth of 16. Also a variable for the RMS value */
-static int16_t microphoneBuffer[MICROPHONE_BUFFER_SIZE_IN_WORDS];
-static rtos::Semaphore bufferReadySemaphore;
 
 /*****************************************************************************/
 /*GLOBAL Functions                                                                */
 /*****************************************************************************/
-void PDM_callback(void);
 
 /*****************************************************************************/
 /*CLASS DECLARATION                                                          */
@@ -75,93 +63,54 @@ class Nano33BLEMicrophoneRMSData
 };
 
 /**
- * This class declares the init and read functions your sensor will use to 
- * initialise the sensor and get the data. All you have to do is change the
- * class name what a name you like 
- * (currently "Nano33BLEYOURCLASSNAMEHERE"), and update the 
- * "Nano33BLEYOURDATACLASSNAMEHERE" name to the name you defined in 
- * the section above.
+ * @brief This class reads rms microphone data from the on board Nano 33 BLE
+ * Sense microphone using Mbed OS. It stores the results in a ring 
+ * buffer (within the Nano33BLESensorBuffer Class) which can be accessed
+ * in a manner with softer time constraints than other implementations. 
  */
-class Nano33BLEMicrophoneRMS: public Nano33BLESensor<Nano33BLEMicrophoneRMS>, public Nano33BLESensorBuffer<Nano33BLEMicrophoneRMSData>
+class Nano33BLEMicrophoneRMS: public Nano33BLESensorBuffer<Nano33BLEMicrophoneRMSData>
 {
   public:
+   /**
+     * @brief Initialises the sensor and starts the Mbed OS Thread.
+     * 
+     */
+    void begin()
+    {
+      init();
+      readThread.start(mbed::callback(Nano33BLEMicrophoneRMS::readFunction, this));
+    }
+
+    Nano33BLEMicrophoneRMS(
+      osPriority threadPriority = osPriorityNormal,
+      uint32_t threadSize = DEFAULT_MICROPHONE_THREAD_STACK_SIZE_BYTES) :
+        readThread(
+        threadPriority,
+        threadSize){};
+  private:
+    /**
+     * @brief Initialises the accelerometer sensor.
+     * 
+     */
     void init(void);
-    void read(void);     
+    /**
+     * @brief Takes one reading from the accelerometer sensor if a reading 
+     * is available.
+     * 
+     */
+    void read(void);
+
+    static void readFunction(Nano33BLEMicrophoneRMS *instance)
+    {
+      while(1)
+      {
+          instance->read();
+      }
+    }
+
+    rtos::Thread readThread;
+    static void PDM_callback(void);  
 };
 
-/*****************************************************************************/
-/*CLASS MEMBER FUNCTION IMPLEMENTATION                                       */
-/*****************************************************************************/
-void PDM_callback(void)
-{
-  // query the number of bytes available
-  int bytesAvailable = PDM.available();
-
-  if(bytesAvailable == MICROPHONE_BUFFER_SIZE_IN_BYTES_C)
-  {
-    PDM.read(microphoneBuffer, MICROPHONE_BUFFER_SIZE_IN_BYTES_C);
-    bufferReadySemaphore.release();
-  }
-}
-
-/**
- * @brief
- * This member function implementation should do everything requred to 
- * initialise the sensor this class is designed for. Immediately after 
- * this function is executed, the RTOS will begin periodically reading
- * values from the sensor.
- * 
- * @param none
- * @return none
- */
-void Nano33BLEMicrophoneRMS::init()
-{
-  /* PDM setup for MP34DT05 microphone */
-  /* configure the data receive callback to transfer data to local buffer */
-  PDM.onReceive(PDM_callback);
-  /* Initialise single PDM channel with a 16KHz sample rate (only 16kHz or 44.1kHz available */
-  if (!PDM.begin(1, 16000))
-  {
-    /* Something went wrong... Put this thread to sleep indefinetely. */
-    osSignalWait(0x0001, osWaitForever);
-  }
-  else
-  {
-    /* Gain values can be from 0 to 80 (around 38db). Check out nrf_pdm.h
-     * from the nRF528x-mbedos core to confirm this. 
-     */
-    /* 
-     * This has to be done after PDM.begin() is called as begin() always
-     *  sets the gain as the default PDM.h value (20).
-     */
-    PDM.setGain(80);
-  }
-}
-
-/**
- * @brief
- * This member function implementation should do everything requred to 
- * read one reading from the sensor this class is designed for. This 
- * function is put inside an endless while loop so will be called 
- * endlessly, therefore a sleep should be called at the end of the 
- * function. The sleep period should be defined by the READ_PERIOD_MS
- * defined at the start of this file.
- * 
- * @param none
- * @return none
- */
-void Nano33BLEMicrophoneRMS::read(void)
-{
-  /* 
-   * Place the implementation required to read the sensor
-   * once here.
-   */
-  bufferReadySemaphore.acquire();
-  Nano33BLEMicrophoneRMSData data;
-  arm_rms_q15((q15_t*)microphoneBuffer, MICROPHONE_BUFFER_SIZE_IN_WORDS, (q15_t*)&data.RMSValue);
-  data.timeStampMs = millis();
-  push(data);
-}
-
-/* Update these names to match the name of the file */ 
+extern Nano33BLEMicrophoneRMS MicrophoneRMS;
 #endif /* NANO33BLEMICROPHONERMS_H_ */

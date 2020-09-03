@@ -2,7 +2,10 @@
   Nano33BLEPressure.h
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
-`  *** WRITE SOMETHING HERE ***
+  This class reads pressure data from the on board Nano 33 BLE
+  Sense pressure sensor using Mbed OS. It stores the results in a ring 
+  buffer (within the Nano33BLESensorBuffer Class) which can be accessed
+  in a manner with softer time constraints than other implementations. 
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -28,12 +31,7 @@
 /*****************************************************************************/
 /*INLCUDES                                                                   */
 /*****************************************************************************/
-/* These are required, do not remove them */
-#include "Nano33BLESensor.h"
 #include "Nano33BLESensorBuffer.h"
-
-/* Place includes required for the initialisation and read of the sensor here*/
-#include <Arduino_LPS22HB.h>
 
 /*****************************************************************************/
 /*MACROS                                                                     */
@@ -42,7 +40,8 @@
  * This macro is required. It defines the wait period between sensor reads.
  * Update to the value you need based on how fast the sensor can read data.  
  */
-#define PRESSURE_READ_PERIOD_MS          (1000U)
+#define DEFAULT_PRESSURE_READ_PERIOD_MS                (40U)
+#define DEFAULT_PRESSURE_THREAD_STACK_SIZE_BYTES       (1024U) 
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -71,74 +70,51 @@ class Nano33BLEPressureData
  * "Nano33BLEPressureData" name to the name you defined in 
  * the section above.
  */
-class Nano33BLEPressure: public Nano33BLESensor<Nano33BLEPressure>, public Nano33BLESensorBuffer<Nano33BLEPressureData>
+class Nano33BLEPressure: public Nano33BLESensorBuffer<Nano33BLEPressureData>
 {
   public:
-    void init(void);
-    void read(void);
-  
+   /**
+     * @brief Initialises the sensor and starts the Mbed OS Thread.
+     * 
+     */
+    void begin()
+    {
+      init();
+      readThread.start(mbed::callback(Nano33BLEPressure::readFunction, this));
+    }
+
+    Nano33BLEPressure(
+      uint32_t readPeriod_ms = DEFAULT_PRESSURE_READ_PERIOD_MS,
+      osPriority threadPriority = osPriorityNormal,
+      uint32_t threadSize = DEFAULT_PRESSURE_THREAD_STACK_SIZE_BYTES) :
+        readPeriod(readPeriod_ms),
+        readThread(
+        threadPriority,
+        threadSize){};
   private:
-    const uint32_t READ_PERIOD_MS_C = PRESSURE_READ_PERIOD_MS;
+    /**
+     * @brief Initialises the accelerometer sensor.
+     * 
+     */
+    void init(void);
+    /**
+     * @brief Takes one reading from the accelerometer sensor if a reading 
+     * is available.
+     * 
+     */
+    void read(void);
+
+    static void readFunction(Nano33BLEPressure *instance)
+    {
+      while(1)
+      {
+          instance->read();
+      }
+    }
+
+    uint32_t readPeriod;
+    rtos::Thread readThread;
 };
 
-/*****************************************************************************/
-/*CLASS MEMBER FUNCTION IMPLEMENTATION                                       */
-/*****************************************************************************/
-/**
- * @brief
- * This member function implementation should do everything requred to 
- * initialise the sensor this class is designed for. Immediately after 
- * this function is executed, the RTOS will begin periodically reading
- * values from the sensor.
- * 
- * @param none
- * @return none
- */
-void Nano33BLEPressure::init()
-{
-  /* IMU setup for LSM9DS1*/
-  /* default setup has all sensors active in continous mode. Sample rates
-   *  are as follows: accelerationSampleRate = 109Hz 
-   */
-  if (!BARO.begin())
-  {
-    /* Something went wrong... Put this thread to sleep indefinetely. */
-    osSignalWait(0x0001, osWaitForever);
-  }
-  return;
-}
-
-/**
- * @brief
- * This member function implementation should do everything requred to 
- * read one reading from the sensor this class is designed for. This 
- * function is put inside an endless while loop so will be called 
- * endlessly, therefore a sleep should be called at the end of the 
- * function. The sleep period should be defined by the READ_PERIOD_MS
- * defined at the start of this file.
- * 
- * @param none
- * @return none
- */
-void Nano33BLEPressure::read(void)
-{
-  /* 
-   * Place the implementation required to read the sensor
-   * once here.
-   */
-  Nano33BLEPressureData data;
-
-
-  data.barometricPressure = BARO.readPressure();
-  data.timeStampMs = millis();
-  push(data);
-
-  /* This is required for the timing of the reading of
-   * the sensor. Do not delete it.
-   */
-  rtos::ThisThread::sleep_for(READ_PERIOD_MS_C);
-  return;
-}
-
-/* Update these names to match the name of the file */ 
+extern Nano33BLEPressure Pressure;
 #endif /* NANO33BLEPRESSURE_H_ */
