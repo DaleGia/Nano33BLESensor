@@ -40,11 +40,11 @@
  * can be displayed nicely in whatever application we are using to monitor the
  * data.
  */
-#define BLE_BUFFER_SIZES 			20
+#define BLE_BUFFER_SIZES             20
 /* Device name which can be scene in BLE scanning software. */
-#define BLE_DEVICE_NAME				"Arduino Nano 33 BLE Sense"
+#define BLE_DEVICE_NAME                "Arduino Nano 33 BLE Sense"
 /* Local name which should pop up when scanning for BLE devices. */
-#define BLE_LOCAL_NAME				"Colour BLE"
+#define BLE_LOCAL_NAME                "Colour BLE"
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -73,38 +73,38 @@ char bleBuffer[BLE_BUFFER_SIZES];
 /*****************************************************************************/
 void setup()
 {
-	/* 
-	 * Serial setup. This will be used to transmit data for viewing on serial 
-	 * plotter 
-	 */
-	Serial.begin(115200);
-	while(!Serial);
+    /* 
+     * Serial setup. This will be used to transmit data for viewing on serial 
+     * plotter 
+     */
+    Serial.begin(115200);
+    while(!Serial);
 
 
-	/* BLE Setup. For information, search for the many ArduinoBLE examples.*/
-	if (!BLE.begin()) 
-	{
-		while (1);	
-	}
-	else
-	{
-		BLE.setDeviceName(BLE_DEVICE_NAME);
-		BLE.setLocalName(BLE_LOCAL_NAME);
-		BLE.setAdvertisedService(BLESensors);
-		BLESensors.addCharacteristic(colourBLE);
+    /* BLE Setup. For information, search for the many ArduinoBLE examples.*/
+    if (!BLE.begin()) 
+    {
+        while (1);    
+    }
+    else
+    {
+        BLE.setDeviceName(BLE_DEVICE_NAME);
+        BLE.setLocalName(BLE_LOCAL_NAME);
+        BLE.setAdvertisedService(BLESensors);
+        BLESensors.addCharacteristic(colourBLE);
 
-		BLE.addService(BLESensors);
-		BLE.advertise();
-		/* 
-		 * Initialises the colour sensor, and starts the 
+        BLE.addService(BLESensors);
+        BLE.advertise();
+        /* 
+         * Initialises the colour sensor, and starts the 
          * periodic reading of the sensor using a Mbed OS thread. 
          * The data is placed in a circular buffer and can be read whenever.
-		 */
-	    Colour.begin();
+         */
+        Colour.begin();
 
-		/* Plots the legend on Serial Plotter */
-		Serial.println("Colour\r\n");
-	}
+        /* Plots the legend on Serial Plotter */
+        Serial.println("Colour\r\n");
+    }
 }
 
 /*****************************************************************************/
@@ -112,31 +112,31 @@ void setup()
 /*****************************************************************************/
 void loop()
 {
-	BLEDevice central = BLE.central();
-	if(central)
-	{
-		int writeLength;
-		/* 
-		 * If a BLE device is connected, the data will start being read, 
-		 * and the data will be written to each BLE characteristic. The same 
-		 * data will also be output through serial so it can be plotted using 
-		 * Serial Plotter. 
-		 */
-		while(central.connected())
-		{	
-			/* 
-			 * sprintf is used to convert the read float value to a string 
-			 * which is stored in bleBuffer. This string is then written to 
-			 * the BLE characteristic. 
-			 */
-			if(Colour.pop(colourData))
-			{
-				writeLength = sprintf(bleBuffer, "%d,%d,%d,%d", colourData.r, colourData.g, colourData.b, colourData.c);
-				colourBLE.writeValue(bleBuffer, writeLength); 
-				
-				Serial.printf( "%d,%d,%d,%d\r\n", colourData.r, colourData.g, colourData.b, colourData.c);
-			}
+    BLEDevice central = BLE.central();
+    if(central)
+    {
+        int writeLength;
+        /* 
+         * If a BLE device is connected, the data will start being read, 
+         * and the data will be written to each BLE characteristic. The same 
+         * data will also be output through serial so it can be plotted using 
+         * Serial Plotter. 
+         */
+        while(central.connected())
+        {    
+            /* 
+             * sprintf is used to convert the read float value to a string 
+             * which is stored in bleBuffer. This string is then written to 
+             * the BLE characteristic. 
+             */
+            if(Colour.pop(colourData))
+            {
+                writeLength = sprintf(bleBuffer, "%d,%d,%d,%d", colourData.r, colourData.g, colourData.b, colourData.c);
+                colourBLE.writeValue(bleBuffer, writeLength); 
+                
+                Serial.printf( "%d,%d,%d,%d\r\n", colourData.r, colourData.g, colourData.b, colourData.c);
+            }
 
-		}
-	}
+        }
+    }
 }

@@ -41,11 +41,11 @@
  * can be displayed nicely in whatever application we are using to monitor the
  * data.
  */
-#define BLE_BUFFER_SIZES 			20
+#define BLE_BUFFER_SIZES             20
 /* Device name which can be scene in BLE scanning software. */
-#define BLE_DEVICE_NAME				"Arduino Nano 33 BLE Sense"
+#define BLE_DEVICE_NAME                "Arduino Nano 33 BLE Sense"
 /* Local name which should pop up when scanning for BLE devices. */
-#define BLE_LOCAL_NAME				"Gyroscope BLE"
+#define BLE_LOCAL_NAME                "Gyroscope BLE"
 
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
@@ -77,40 +77,40 @@ char bleBuffer[BLE_BUFFER_SIZES];
 /*****************************************************************************/
 void setup()
 {
-	/* 
-	 * Serial setup. This will be used to transmit data for viewing on serial 
-	 * plotter 
-	 */
-	Serial.begin(115200);
-	while(!Serial);
+    /* 
+     * Serial setup. This will be used to transmit data for viewing on serial 
+     * plotter 
+     */
+    Serial.begin(115200);
+    while(!Serial);
 
 
-	/* BLE Setup. For information, search for the many ArduinoBLE examples.*/
-	if (!BLE.begin()) 
-	{
-		while (1);	
-	}
-	else
-	{
-		BLE.setDeviceName(BLE_DEVICE_NAME);
-		BLE.setLocalName(BLE_LOCAL_NAME);
-		BLE.setAdvertisedService(BLEGyroscope);
+    /* BLE Setup. For information, search for the many ArduinoBLE examples.*/
+    if (!BLE.begin()) 
+    {
+        while (1);    
+    }
+    else
+    {
+        BLE.setDeviceName(BLE_DEVICE_NAME);
+        BLE.setLocalName(BLE_LOCAL_NAME);
+        BLE.setAdvertisedService(BLEGyroscope);
         /* A seperate characteristic is used for each X, Y, and Z axis. */
-		BLEGyroscope.addCharacteristic(gyroscopeXBLE);
-		BLEGyroscope.addCharacteristic(gyroscopeYBLE);
-		BLEGyroscope.addCharacteristic(gyroscopeZBLE);
+        BLEGyroscope.addCharacteristic(gyroscopeXBLE);
+        BLEGyroscope.addCharacteristic(gyroscopeYBLE);
+        BLEGyroscope.addCharacteristic(gyroscopeZBLE);
 
-		BLE.addService(BLEGyroscope);
-		BLE.advertise();
-		/* 
-		 * Initialises the IMU sensor, and starts the periodic reading of the 
-		 * sensor using a Mbed OS thread. The data is placed in a circular 
-		 * buffer and can be read whenever.
-		 */
-		Gyroscope.begin();
-		/* Plots the legend on Serial Plotter */
-		Serial.println("X, Y, Z");
-	}
+        BLE.addService(BLEGyroscope);
+        BLE.advertise();
+        /* 
+         * Initialises the IMU sensor, and starts the periodic reading of the 
+         * sensor using a Mbed OS thread. The data is placed in a circular 
+         * buffer and can be read whenever.
+         */
+        Gyroscope.begin();
+        /* Plots the legend on Serial Plotter */
+        Serial.println("X, Y, Z");
+    }
 }
 
 /*****************************************************************************/
@@ -118,34 +118,34 @@ void setup()
 /*****************************************************************************/
 void loop()
 {
-	BLEDevice central = BLE.central();
-	if(central)
-	{
-		int writeLength;
-		/* 
-		 * If a BLE device is connected, gyroscope data will start being read, 
-		 * and the data will be written to each BLE characteristic. The same 
-		 * data will also be output through serial so it can be plotted using 
-		 * Serial Plotter. 
-		 */
-		while(central.connected())
-		{			
-			if(Gyroscope.pop(gyroscopeData))
-			{
-				/* 
-				 * sprintf is used to convert the read float value to a string 
-				 * which is stored in bleBuffer. This string is then written to 
-				 * the BLE characteristic. 
-				 */
-				writeLength = sprintf(bleBuffer, "%f", gyroscopeData.x);
-				gyroscopeXBLE.writeValue(bleBuffer, writeLength); 
-				writeLength = sprintf(bleBuffer, "%f", gyroscopeData.y);
-				gyroscopeYBLE.writeValue(bleBuffer, writeLength);      
-				writeLength = sprintf(bleBuffer, "%f", gyroscopeData.z);
-				gyroscopeZBLE.writeValue(bleBuffer, writeLength);      
+    BLEDevice central = BLE.central();
+    if(central)
+    {
+        int writeLength;
+        /* 
+         * If a BLE device is connected, gyroscope data will start being read, 
+         * and the data will be written to each BLE characteristic. The same 
+         * data will also be output through serial so it can be plotted using 
+         * Serial Plotter. 
+         */
+        while(central.connected())
+        {            
+            if(Gyroscope.pop(gyroscopeData))
+            {
+                /* 
+                 * sprintf is used to convert the read float value to a string 
+                 * which is stored in bleBuffer. This string is then written to 
+                 * the BLE characteristic. 
+                 */
+                writeLength = sprintf(bleBuffer, "%f", gyroscopeData.x);
+                gyroscopeXBLE.writeValue(bleBuffer, writeLength); 
+                writeLength = sprintf(bleBuffer, "%f", gyroscopeData.y);
+                gyroscopeYBLE.writeValue(bleBuffer, writeLength);      
+                writeLength = sprintf(bleBuffer, "%f", gyroscopeData.z);
+                gyroscopeZBLE.writeValue(bleBuffer, writeLength);      
 
-				Serial.printf("%f,%f,%f\r\n", gyroscopeData.x, gyroscopeData.y, gyroscopeData.z);
-			}
-		}
-	}
+                Serial.printf("%f,%f,%f\r\n", gyroscopeData.x, gyroscopeData.y, gyroscopeData.z);
+            }
+        }
+    }
 }
