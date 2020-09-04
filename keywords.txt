@@ -1,0 +1,40 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+Magnetic        KEYWORD1
+Gyroscope	      KEYWORD1
+Accelerometer	  KEYWORD1
+Proximity	      KEYWORD1
+Colour	        KEYWORD1
+Gesture	        KEYWORD1
+Pressure	      KEYWORD1
+Temperature	    KEYWORD1
+MicrophoneRMS	  KEYWORD1
+
+Nano33BLEMagnetic         KEYWORD1
+Nano33BLEGyroscope	      KEYWORD1
+Nano33BLEAccelerometer	  KEYWORD1
+Nano33BLEProximity	      KEYWORD1
+Nano33BLEColour	          KEYWORD1
+Nano33BLEGesture	        KEYWORD1
+Nano33BLEPressure	        KEYWORD1
+Nano33BLETemperature	    KEYWORD1
+Nano33BLEMicrophoneRMS	  KEYWORD1
+
+Nano33BLEMagneticData         KEYWORD1
+Nano33BLEGyroscopeData	      KEYWORD1
+Nano33BLEAccelerometerData	  KEYWORD1
+Nano33BLEProximityData	      KEYWORD1
+Nano33BLEColourData	          KEYWORD1
+Nano33BLEGestureData	        KEYWORD1
+Nano33BLEPressureData	        KEYWORD1
+Nano33BLETemperatureData	    KEYWORD1
+Nano33BLEMicrophoneRMSData	  KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+begin	                KEYWORD2
+getAvailableDataSize	KEYWORD2
+pop	                  KEYWORD2
+popMultiple	          KEYWORD2
