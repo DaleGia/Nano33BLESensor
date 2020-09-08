@@ -1,4 +1,6 @@
 # Nano33BLESensor
+See [The Arduino Nano 33 BLE Sense Sensor Library You Have Been Waiting For](https://dalegi.com/2020/09/04/the-arduino-nano-33-ble-sense-sensor-library-you-have-been-waiting-for/).
+
 An Arduino library for the [Nano 33 BLE Sense](https://store.arduino.cc/usa/nano-33-ble-sense) that leverages [Mbed OS](https://os.mbed.com/mbed-os/) to automatically place sensor measurements in a ring buffer that can be integrated into programs in a simple manner.
 
 Nano33BLESensor was created to help make easy to understand examples for the Arduino Nano 33 BLE Sense that utilise Mbed OS. For an example that does not use Mbed OS, please see [nano-33-sense-serial-example](https://github.com/DaleGia/nano-33-sense-serial-example)
