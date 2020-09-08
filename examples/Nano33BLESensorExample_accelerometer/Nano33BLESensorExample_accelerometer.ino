@@ -50,7 +50,6 @@
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
 /*****************************************************************************/
-Nano33BLEAccelerometer Accelerometer;
 /* 
  * Nano33BLEAccelerometerData object which we will store data in each time we read
  * the accelerometer data. 
