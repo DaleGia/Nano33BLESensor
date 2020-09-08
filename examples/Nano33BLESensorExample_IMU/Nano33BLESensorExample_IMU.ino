@@ -1,5 +1,5 @@
 /*
-  Nano33BLESensorExample_all-sensors.ino
+  Nano33BLESensorExample_IMU.ino
   Copyright (c) 2020 Dale Giancono. All rights reserved..
 
   This program is an example program showing some of the cababilities of the 
@@ -52,12 +52,6 @@
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
 /*****************************************************************************/
-
-/* Pointer to the sensor objects that we will instanciate in the setup */
-Nano33BLEMagnetic *Magnetic;
-Nano33BLEGyroscope *Gyroscope;
-Nano33BLEAccelerometer *Accelerometer;
-
 /* 
  * Objects which we will store data in each time we read
  * the each sensor. 
@@ -131,9 +125,9 @@ void setup()
          * of the sensor using a Mbed OS thread. The data is placed in a 
          * circular buffer and can be read whenever.
          */
-        Magnetic = Nano33BLESensor<Nano33BLEMagnetic>::begin();
-        Gyroscope = Nano33BLESensor<Nano33BLEGyroscope>::begin();
-        Accelerometer = Nano33BLESensor<Nano33BLEAccelerometer>::begin();
+        Magnetic.begin();
+        Gyroscope.begin();
+        Accelerometer.begin();
 
         /* Plots the legend on Serial Plotter */
         Serial.println("MagX, MagY, MagZ, GyX, GyY, GyZ, AccX, AccY, AccZ");
@@ -163,7 +157,7 @@ void loop()
              * which is stored in bleBuffer. This string is then written to 
              * the BLE characteristic. 
              */        
-            if(Magnetic->pop(magneticData))
+            if(Magnetic.pop(magneticData))
             {
                 writeLength = sprintf(bleBuffer, "%f", magneticData.x);
                 magneticBLEX.writeValue(bleBuffer, writeLength); 
@@ -174,7 +168,7 @@ void loop()
                 dataGotFlag = true;
             }
 
-            if(Gyroscope->pop(gyroscopeData))
+            if(Gyroscope.pop(gyroscopeData))
             {
                 writeLength = sprintf(bleBuffer, "%f", gyroscopeData.x);
                 gyroscopeBLEX.writeValue(bleBuffer, writeLength);   
@@ -185,7 +179,7 @@ void loop()
                 dataGotFlag = true;
             }
 
-            if(Accelerometer->pop(accelerometerData))
+            if(Accelerometer.pop(accelerometerData))
             {
                 writeLength = sprintf(bleBuffer, "%f", accelerometerData.x);
                 accelerometerBLEX.writeValue(bleBuffer, writeLength);   
