@@ -129,7 +129,7 @@ void loop()
              * which is stored in bleBuffer. This string is then written to 
              * the BLE characteristic. 
              */
-            if(Gesture.pop(proximityData))
+            if(Gesture.pop(gestureData))
             {
                 writeLength = sprintf(bleBuffer, "%d", gestureData.gesture);
                 gestureBLE.writeValue(bleBuffer, writeLength); 
