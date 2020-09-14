@@ -1,24 +1,20 @@
 /*
   Nano33BLESensorExample_pressure.ino
   Copyright (c) 2020 Dale Giancono. All rights reserved..
-
   This program is an example program showing some of the cababilities of the 
   Nano33BLESensor Library. In this case it outputs pressure data from one of 
   the Arduino Nano 33 BLE Sense's on board sensors via serial in a format that 
   can be displayed on the Arduino IDE serial plotter. It also outputs the data 
   via BLE in a string format that can be viewed using a variety of BLE scanning 
   software.
-
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
@@ -49,6 +45,12 @@
 /*****************************************************************************/
 /*GLOBAL Data                                                                */
 /*****************************************************************************/
+/* 
+ * Nano33BLEPressureData object which we will store data in each time we read 
+ * the pressure data. 
+ */ 
+Nano33BLEPressureData pressureData;
+
 /* 
  * Declares the BLEService and characteristics we will need for the BLE 
  * transfer. The UUID was randomly generated using one of the many online 
@@ -97,7 +99,7 @@ void setup()
         Pressure.begin();
 
         /* Plots the legend on Serial Plotter */
-        Serial.println("Proximity\r\n");
+        Serial.println("Pressure\r\n");
     }
 }
 
@@ -119,16 +121,16 @@ void loop()
         while(central.connected())
         {    
             /* 
-             * sprintf is used to convert the read int value to a string 
+             * sprintf is used to convert the read float value to a string 
              * which is stored in bleBuffer. This string is then written to 
              * the BLE characteristic. 
              */
-            if(Pressure.pop(proximityData))
+            if(Pressure.pop(pressureData))
             {
-                writeLength = sprintf(bleBuffer, "%d", pressureData.barometricPressure);
+                writeLength = sprintf(bleBuffer, "%f", pressureData.barometricPressure);
                 pressureBLE.writeValue(bleBuffer, writeLength); 
                 
-                Serial.printf("%d\r\n", pressureData.barometricPressure);
+                Serial.printf("%f\r\n", pressureData.barometricPressure);
             }
 
         }
