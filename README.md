@@ -28,9 +28,11 @@ Nano33BLESensor was created to help make easy to understand examples for the Ard
 - Using Mbed OS effectively makes the reading of sensor measurements happen "in the background", and keeps it out of the main program loop.
   
 ## Installation
-Download this file as a zip, and extract the resulting folder into your Arduino Libraries folder. See [Installing Additional Arduino Libraries](https://www.arduino.cc/en/Guide/Libraries). Alternatively, use the Arduino IDE and library manager to find and install Nano33BleSensor.
-
+Download this file as a zip, and extract the resulting folder into your Arduino Libraries folder. See [Installing Additional Arduino Libraries](https://www.arduino.cc/en/Guide/Libraries). Alternatively, use the Arduino IDE and library manager to find and install Nano33BLESensor.
+ 
 ## Note on Usage
+Nano33BLESensor can be used with both the [ArduinoCore-nRF528x-mbedos](https://github.com/arduino/ArduinoCore-nRF528x-mbedos) and [ArduinoCore-mbed](https://github.com/arduino/ArduinoCore-mbed) cores, however the [Nano33BLESensorExample_microphoneRMS.ino](examples/Nano33BLESensorExample_microphoneRMS/Nano33BLESensorExample_microphoneRMS.ino) example only currently compiles when using the ArduinoCore-nRF528x-mbedos core.
+
 By default the ring buffer is only size of 20. No indication of buffer overflow is available, so it is up to the user to ensure the buffer is being read reguarly enough. Each sensor is read at differing intervals that are dependant on the sensors capabilities.
 
 ## Examples
