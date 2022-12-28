@@ -26,7 +26,6 @@
 /*****************************************************************************/
 #include "Nano33BLEMicrophoneRMS.h"
 #include <PDM.h>
-#include <arm_math.h>
 
 /*****************************************************************************/
 /*MACROS                                                                     */
@@ -96,13 +95,19 @@ static rtos::Semaphore bufferReadySemaphore;
  */
 void Nano33BLEMicrophoneRMS::read(void)
 {
+  uint16_t sum = 0;
   /* 
    * Place the implementation required to read the sensor
    * once here.
    */
   bufferReadySemaphore.acquire();
   Nano33BLEMicrophoneRMSData data;
-  arm_rms_q15((q15_t*)microphoneBuffer, MICROPHONE_BUFFER_SIZE_IN_WORDS, (q15_t*)&data.RMSValue);
+
+  for(int i = 0; i < MICROPHONE_BUFFER_SIZE_IN_WORDS; i++)
+  {
+    sum = sum + pow(microphoneBuffer[i], 2);
+  }
+  data.RMSValue = sqrt(sum/MICROPHONE_BUFFER_SIZE_IN_WORDS);
   data.timeStampMs = millis();
   push(data);
 }
