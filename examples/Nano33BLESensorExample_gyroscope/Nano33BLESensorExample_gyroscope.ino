@@ -138,13 +138,14 @@ void loop()
                  * the BLE characteristic. 
                  */
                 writeLength = sprintf(bleBuffer, "%f", gyroscopeData.x);
-                gyroscopeXBLE.writeValue(bleBuffer, writeLength); 
+                gyroscopeXBLE.writeValue((void*)bleBuffer, writeLength); 
                 writeLength = sprintf(bleBuffer, "%f", gyroscopeData.y);
-                gyroscopeYBLE.writeValue(bleBuffer, writeLength);      
+                gyroscopeYBLE.writeValue((void*)bleBuffer, writeLength);      
                 writeLength = sprintf(bleBuffer, "%f", gyroscopeData.z);
-                gyroscopeZBLE.writeValue(bleBuffer, writeLength);      
+                gyroscopeZBLE.writeValue((void*)bleBuffer, writeLength);      
+                writeLength = sprintf(bleBuffer, "%f,%f,%f", gyroscopeData.x, gyroscopeData.y, gyroscopeData.z);
 
-                Serial.printf("%f,%f,%f\r\n", gyroscopeData.x, gyroscopeData.y, gyroscopeData.z);
+                Serial.println(bleBuffer);
             }
         }
     }

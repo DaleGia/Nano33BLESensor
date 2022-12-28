@@ -128,9 +128,8 @@ void loop()
             if(Pressure.pop(pressureData))
             {
                 writeLength = sprintf(bleBuffer, "%f", pressureData.barometricPressure);
-                pressureBLE.writeValue(bleBuffer, writeLength); 
-                
-                Serial.printf("%f\r\n", pressureData.barometricPressure);
+                pressureBLE.writeValue((void*)bleBuffer, writeLength); 
+                Serial.println(bleBuffer);
             }
 
         }

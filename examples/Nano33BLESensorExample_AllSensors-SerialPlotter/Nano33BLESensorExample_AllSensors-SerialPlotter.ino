@@ -56,6 +56,7 @@ Nano33BLEPressureData pressureData;
 Nano33BLETemperatureData temperatureData;
 Nano33BLEMicrophoneRMSData MicrophoneRMSData;
 
+char buffer[300];  
 /*****************************************************************************/
 /*SETUP (Initialisation)                                                          */
 /*****************************************************************************/
@@ -103,17 +104,32 @@ void loop()
     Temperature.pop(temperatureData);
     MicrophoneRMS.pop(MicrophoneRMSData);
 
-    Serial.printf("%f,%f,%f,", magneticData.x, magneticData.y, magneticData.z);
-    Serial.printf("%f,%f,%f,", gyroscopeData.x, gyroscopeData.y, gyroscopeData.z);
-    Serial.printf("%f,%f,%f,", accelerometerData.x, accelerometerData.y, accelerometerData.z);
-    Serial.printf("%d,", proximityData.proximity);
-    Serial.printf("%d,%d,%d,%d,", colourData.r, colourData.g, colourData.b, colourData.c);
-    Serial.printf("%d,", gestureData.gesture);
-    Serial.printf("%d,", gestureData.gesture);
-    Serial.printf("%f,", pressureData.barometricPressure);
-    Serial.printf("%f,%f,", temperatureData.temperatureCelsius, temperatureData.humidity);
-    Serial.printf("%f,%f,", temperatureData.temperatureCelsius, temperatureData.humidity);
-    Serial.printf("%d \r\n", MicrophoneRMSData.RMSValue);
+
+    snprintf(
+      buffer, 
+      sizeof(buffer),
+      "%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%f,%f,%f,%d", 
+      magneticData.x, 
+      magneticData.y, 
+      magneticData.z,
+      gyroscopeData.x, 
+      gyroscopeData.y, 
+      gyroscopeData.z,
+      accelerometerData.x, 
+      accelerometerData.y, 
+      accelerometerData.z,
+      proximityData.proximity,
+      colourData.r, 
+      colourData.g, 
+      colourData.b, 
+      colourData.c,
+      gestureData.gesture,
+      pressureData.barometricPressure,
+      temperatureData.temperatureCelsius, 
+      temperatureData.humidity,
+      MicrophoneRMSData.RMSValue);
+
+    Serial.println(buffer);
 
     delay(50);
 }

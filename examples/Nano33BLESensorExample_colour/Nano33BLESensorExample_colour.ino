@@ -132,11 +132,9 @@ void loop()
             if(Colour.pop(colourData))
             {
                 writeLength = sprintf(bleBuffer, "%d,%d,%d,%d", colourData.r, colourData.g, colourData.b, colourData.c);
-                colourBLE.writeValue(bleBuffer, writeLength); 
-                
-                Serial.printf( "%d,%d,%d,%d\r\n", colourData.r, colourData.g, colourData.b, colourData.c);
+                colourBLE.writeValue((void*)bleBuffer, writeLength); 
+                Serial.println(bleBuffer);
             }
-
         }
     }
 }

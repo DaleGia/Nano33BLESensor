@@ -132,9 +132,8 @@ void loop()
             if(Gesture.pop(gestureData))
             {
                 writeLength = sprintf(bleBuffer, "%d", gestureData.gesture);
-                gestureBLE.writeValue(bleBuffer, writeLength); 
-                
-                Serial.printf("%d\r\n", gestureData.gesture);
+                gestureBLE.writeValue((void*)bleBuffer, writeLength); 
+                Serial.println(bleBuffer);
             }
 
         }

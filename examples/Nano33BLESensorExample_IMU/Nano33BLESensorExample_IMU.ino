@@ -160,39 +160,41 @@ void loop()
             if(Magnetic.pop(magneticData))
             {
                 writeLength = sprintf(bleBuffer, "%f", magneticData.x);
-                magneticBLEX.writeValue(bleBuffer, writeLength); 
+                magneticBLEX.writeValue((void*)bleBuffer, writeLength); 
                 writeLength = sprintf(bleBuffer, "%f", magneticData.y);
-                magneticBLEY.writeValue(bleBuffer, writeLength);                
+                magneticBLEY.writeValue((void*)bleBuffer, writeLength);                
                 writeLength = sprintf(bleBuffer, "%f", magneticData.z);
-                magneticBLEZ.writeValue(bleBuffer, writeLength);                
+                magneticBLEZ.writeValue((void*)bleBuffer, writeLength);                
                 dataGotFlag = true;
             }
 
             if(Gyroscope.pop(gyroscopeData))
             {
                 writeLength = sprintf(bleBuffer, "%f", gyroscopeData.x);
-                gyroscopeBLEX.writeValue(bleBuffer, writeLength);   
+                gyroscopeBLEX.writeValue((void*)bleBuffer, writeLength);   
                 writeLength = sprintf(bleBuffer, "%f", gyroscopeData.y);
-                gyroscopeBLEY.writeValue(bleBuffer, writeLength);   
+                gyroscopeBLEY.writeValue((void*)bleBuffer, writeLength);   
                 writeLength = sprintf(bleBuffer, "%f", gyroscopeData.z);
-                gyroscopeBLEZ.writeValue(bleBuffer, writeLength);   
+                gyroscopeBLEZ.writeValue((void*)bleBuffer, writeLength);   
                 dataGotFlag = true;
             }
 
             if(Accelerometer.pop(accelerometerData))
             {
                 writeLength = sprintf(bleBuffer, "%f", accelerometerData.x);
-                accelerometerBLEX.writeValue(bleBuffer, writeLength);   
+                accelerometerBLEX.writeValue((void*)bleBuffer, writeLength);   
                 writeLength = sprintf(bleBuffer, "%f", accelerometerData.y);
-                accelerometerBLEY.writeValue(bleBuffer, writeLength);   
+                accelerometerBLEY.writeValue((void*)bleBuffer, writeLength);   
                 writeLength = sprintf(bleBuffer, "%f", accelerometerData.z);
-                accelerometerBLEZ.writeValue(bleBuffer, writeLength);   
+                accelerometerBLEZ.writeValue((void*)bleBuffer, writeLength);   
                 dataGotFlag = true;
             }
 
             if(dataGotFlag)
             {
-                Serial.printf(
+                char buffer[200];
+                writeLength = sprintf(\
+                    buffer,
                     "%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n", 
                     magneticData.x, 
                     magneticData.y, 
@@ -203,6 +205,8 @@ void loop()
                     accelerometerData.x, 
                     accelerometerData.y, 
                     accelerometerData.z);
+
+                Serial.println(buffer);
                 dataGotFlag = false;
             }
         }

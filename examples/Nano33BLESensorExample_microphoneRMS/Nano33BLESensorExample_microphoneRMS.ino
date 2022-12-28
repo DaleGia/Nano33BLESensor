@@ -133,8 +133,8 @@ void loop()
             if(MicrophoneRMS.pop(microphoneData))
             {
                 writeLength = sprintf(bleBuffer, "%d", microphoneData.RMSValue);
-                microphoneRMSBLE.writeValue(bleBuffer, writeLength); 
-                Serial.printf("%d\r\n", microphoneData.RMSValue);
+                microphoneRMSBLE.writeValue((void*)bleBuffer, writeLength); 
+                Serial.println(bleBuffer);
             }
         }
     }

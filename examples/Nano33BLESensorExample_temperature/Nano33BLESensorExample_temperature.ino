@@ -132,9 +132,9 @@ void loop()
             if(Temperature.pop(temperatureData))
             {
                 writeLength = sprintf(bleBuffer, "%f,%f", temperatureData.temperatureCelsius, temperatureData.humidity);
-                tempertaureBLE.writeValue(bleBuffer, writeLength); 
+                tempertaureBLE.writeValue((void*)bleBuffer, writeLength); 
                 
-                Serial.printf("%f,%f\r\n", temperatureData.temperatureCelsius, temperatureData.humidity);
+                Serial.println(bleBuffer);
             }
 
         }

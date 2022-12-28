@@ -138,13 +138,13 @@ void loop()
                  * the BLE characteristic. 
                  */
                 writeLength = sprintf(bleBuffer, "%f", magneticData.x);
-                magneticXBLE.writeValue(bleBuffer, writeLength); 
+                magneticXBLE.writeValue((void*)bleBuffer, writeLength); 
                 writeLength = sprintf(bleBuffer, "%f", magneticData.y);
-                magneticYBLE.writeValue(bleBuffer, writeLength);      
+                magneticYBLE.writeValue((void*)bleBuffer, writeLength);      
                 writeLength = sprintf(bleBuffer, "%f", magneticData.z);
-                magneticZBLE.writeValue(bleBuffer, writeLength);      
-
-                Serial.printf("%f,%f,%f\r\n", magneticData.x, magneticData.y, magneticData.z);
+                magneticZBLE.writeValue((void*)bleBuffer, writeLength);      
+                writeLength = sprintf(bleBuffer, "%f,%f,%f", magneticData.x, magneticData.y, magneticData.z);
+                Serial.println(bleBuffer);
             }
         }
     }

@@ -138,13 +138,21 @@ void loop()
                  * the BLE characteristic. 
                  */
                 writeLength = sprintf(bleBuffer, "%f", accelerometerData.x);
-                accelerometerXBLE.writeValue(bleBuffer, writeLength); 
+                accelerometerXBLE.writeValue((void*)bleBuffer, writeLength); 
                 writeLength = sprintf(bleBuffer, "%f", accelerometerData.y);
-                accelerometerYBLE.writeValue(bleBuffer, writeLength);      
+                accelerometerYBLE.writeValue((void*)bleBuffer, writeLength);      
                 writeLength = sprintf(bleBuffer, "%f", accelerometerData.z);
-                accelerometerZBLE.writeValue(bleBuffer, writeLength);      
+                accelerometerZBLE.writeValue((void*)bleBuffer, writeLength);      
+                
+                writeLength = snprintf(
+                    bleBuffer, 
+                    sizeof(bleBuffer), 
+                    "%f,%f,%f", 
+                    accelerometerData.x,
+                    accelerometerData.y,
+                    accelerometerData.z);
 
-                Serial.printf("%f,%f,%f\r\n", accelerometerData.x, accelerometerData.y, accelerometerData.z);
+                Serial.println(bleBuffer);
             }
         }
     }

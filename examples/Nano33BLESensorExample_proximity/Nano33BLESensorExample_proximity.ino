@@ -132,9 +132,8 @@ void loop()
             if(Proximity.pop(proximityData))
             {
                 writeLength = sprintf(bleBuffer, "%d", proximityData.proximity);
-                proximityBLE.writeValue(bleBuffer, writeLength); 
-                
-                Serial.printf("%d\r\n", proximityData.proximity);
+                pressureBLE.writeValue((void*)bleBuffer, writeLength); 
+                Serial.println(bleBuffer);
             }
 
         }
